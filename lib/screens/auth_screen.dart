@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config/api_config.dart';
-import '../services/api_service.dart';
+import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import 'prestamos_list_screen.dart';
 
@@ -54,7 +54,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     });
 
     try {
-      await ApiService.login(
+      await AuthService.login(
         email: _emailLoginController.text.trim(),
         password: _passwordLoginController.text,
       );
@@ -79,7 +79,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     });
 
     try {
-      await ApiService.register(
+      await AuthService.register(
         nombre: _nombreRegController.text.trim(),
         email: _emailRegController.text.trim(),
         password: _passwordRegController.text,
@@ -126,16 +126,20 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               runSpacing: 4,
               children: [
                 ActionChip(
+                  label: const Text('Celular USB (localhost:8080)'),
+                  onPressed: () => urlController.text = ApiConfig.defaultWebLocalUrl,
+                ),
+                ActionChip(
+                  label: const Text('WiFi Local (10.18.44.92:8080)'),
+                  onPressed: () => urlController.text = 'http://10.18.44.92:8080',
+                ),
+                ActionChip(
                   label: const Text('Render'),
                   onPressed: () => urlController.text = ApiConfig.defaultRenderUrl,
                 ),
                 ActionChip(
                   label: const Text('Emulador Android (10.0.2.2)'),
                   onPressed: () => urlController.text = ApiConfig.defaultLocalUrl,
-                ),
-                ActionChip(
-                  label: const Text('Localhost (8080)'),
-                  onPressed: () => urlController.text = ApiConfig.defaultWebLocalUrl,
                 ),
               ],
             )

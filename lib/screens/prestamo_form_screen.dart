@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../models/prestamo.dart';
-import '../services/api_service.dart';
+import '../services/prestamo_service.dart';
 
 class PrestamoFormScreen extends StatefulWidget {
   final Prestamo? prestamoExistente;
@@ -101,7 +101,7 @@ class _PrestamoFormScreenState extends State<PrestamoFormScreen> {
 
     try {
       if (widget.esEdicion) {
-        await ApiService.updatePrestamo(
+        await PrestamoService.updatePrestamo(
           id: widget.prestamoExistente!.id,
           cliente: cliente,
           dni: dni,
@@ -110,7 +110,7 @@ class _PrestamoFormScreenState extends State<PrestamoFormScreen> {
           fechaVencimiento: fechaStr,
         );
       } else {
-        await ApiService.createPrestamo(
+        await PrestamoService.createPrestamo(
           cliente: cliente,
           dni: dni,
           monto: monto,

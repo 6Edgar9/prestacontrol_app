@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'screens/auth_screen.dart';
 import 'screens/prestamos_list_screen.dart';
-import 'services/api_service.dart';
+import 'services/auth_service.dart';
+import 'services/prestamo_service.dart';
 import 'services/storage_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -9,22 +10,22 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Cargar URL base personalizada guardada
+  // Cargar URL base configurada
   await StorageService.loadBaseUrl();
 
-  // Configurar callback global cuando la API devuelva 401
-  ApiService.onUnauthorized = () {
+  // Callback global para 401: redirige limpiando historial
+  PrestamoService.onUnauthorized = () {
     navigatorKey.currentState?.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const AuthScreen()),
       (route) => false,
     );
   };
 
-  // Sesion persistente: si ya existe token en almacenamiento seguro, va directo a la lista
+  // Persistencia de sesión con validación de JWT
   final token = await StorageService.getToken();
-  final bool tieneSesion = token != null && token.isNotEmpty;
+  final bool sesionValida = AuthService.isTokenValid(token);
 
-  runApp(PrestaControlApp(inicioConSesion: tieneSesion));
+  runApp(PrestaControlApp(inicioConSesion: sesionValida));
 }
 
 class PrestaControlApp extends StatelessWidget {
