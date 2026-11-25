@@ -310,6 +310,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                                           : const Text('Entrar', style: TextStyle(fontSize: 16)),
                                     ),
                                   ),
+                                  if (_isLoading) ...[
+                                    const SizedBox(height: 10),
+                                    const Text(
+                                      'Conectando con el servidor, puede tardar unos segundos...',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 12, color: Colors.blueGrey, fontStyle: FontStyle.italic),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -389,6 +397,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                                           : const Text('Crear Cuenta', style: TextStyle(fontSize: 16)),
                                     ),
                                   ),
+                                  if (_isLoading) ...[
+                                    const SizedBox(height: 10),
+                                    const Text(
+                                      'Conectando con el servidor, puede tardar unos segundos...',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 12, color: Colors.blueGrey, fontStyle: FontStyle.italic),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

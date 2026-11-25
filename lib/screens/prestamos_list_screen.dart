@@ -246,7 +246,20 @@ class _PrestamosListScreenState extends State<PrestamosListScreen> with SingleTi
             TokenExpirationBanner(expirationDate: _tokenExpiration),
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text(
+                            'Conectando con el servidor, puede tardar unos segundos...',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14, color: Colors.blueGrey, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    )
                   : _errorMessage != null
                       ? Center(
                           child: Padding(

@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/prestamo.dart';
@@ -7,6 +9,9 @@ import 'storage_service.dart';
 
 class PrestamoService {
   static Function()? onUnauthorized;
+
+  static const String _coldStartMessage =
+      'Conectando con el servidor, puede tardar unos segundos... Si el servidor en Render está iniciando, esto puede tomar hasta 1 minuto.';
 
   static Map<String, String> _headers(String? token) => {
         'Content-Type': 'application/json',
@@ -32,28 +37,48 @@ class PrestamoService {
   }
 
   static Future<List<Prestamo>> getPrestamos() async {
-    final token = await StorageService.getToken();
-    final response = await http.get(Uri.parse(ApiConfig.prestamos), headers: _headers(token));
+    try {
+      final token = await StorageService.getToken();
+      final response = await http
+          .get(Uri.parse(ApiConfig.prestamos), headers: _headers(token))
+          .timeout(ApiConfig.requestTimeout);
 
-    _handleResponseCode(response.statusCode);
+      _handleResponseCode(response.statusCode);
 
-    if (response.statusCode == 200) {
-      final List<dynamic> list = jsonDecode(response.body);
-      return list.map((e) => Prestamo.fromJson(e as Map<String, dynamic>)).toList();
+      if (response.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(response.body);
+        return list.map((e) => Prestamo.fromJson(e as Map<String, dynamic>)).toList();
+      }
+      throw Exception(_extractError(response.body, response.statusCode));
+    } on TimeoutException {
+      throw Exception('Tiempo de espera agotado (60s). $_coldStartMessage');
+    } on SocketException {
+      throw Exception('Error de conexión a internet o el servidor está iniciando. Intenta de nuevo en unos segundos.');
+    } on http.ClientException catch (e) {
+      throw Exception('Error de red: ${e.message}. $_coldStartMessage');
     }
-    throw Exception(_extractError(response.body, response.statusCode));
   }
 
   static Future<ResumenCartera> getResumen() async {
-    final token = await StorageService.getToken();
-    final response = await http.get(Uri.parse(ApiConfig.prestamosResumen), headers: _headers(token));
+    try {
+      final token = await StorageService.getToken();
+      final response = await http
+          .get(Uri.parse(ApiConfig.prestamosResumen), headers: _headers(token))
+          .timeout(ApiConfig.requestTimeout);
 
-    _handleResponseCode(response.statusCode);
+      _handleResponseCode(response.statusCode);
 
-    if (response.statusCode == 200) {
-      return ResumenCartera.fromJson(jsonDecode(response.body));
+      if (response.statusCode == 200) {
+        return ResumenCartera.fromJson(jsonDecode(response.body));
+      }
+      throw Exception(_extractError(response.body, response.statusCode));
+    } on TimeoutException {
+      throw Exception('Tiempo de espera agotado (60s). $_coldStartMessage');
+    } on SocketException {
+      throw Exception('Error de conexión a internet o el servidor está iniciando. Intenta de nuevo en unos segundos.');
+    } on http.ClientException catch (e) {
+      throw Exception('Error de red: ${e.message}. $_coldStartMessage');
     }
-    throw Exception(_extractError(response.body, response.statusCode));
   }
 
   static Future<Prestamo> createPrestamo({
@@ -63,25 +88,35 @@ class PrestamoService {
     required double interes,
     required String fechaVencimiento,
   }) async {
-    final token = await StorageService.getToken();
-    final response = await http.post(
-      Uri.parse(ApiConfig.prestamos),
-      headers: _headers(token),
-      body: jsonEncode({
-        'cliente': cliente,
-        'dni': dni,
-        'monto': monto,
-        'interes': interes,
-        'fechaVencimiento': fechaVencimiento,
-      }),
-    );
+    try {
+      final token = await StorageService.getToken();
+      final response = await http
+          .post(
+            Uri.parse(ApiConfig.prestamos),
+            headers: _headers(token),
+            body: jsonEncode({
+              'cliente': cliente,
+              'dni': dni,
+              'monto': monto,
+              'interes': interes,
+              'fechaVencimiento': fechaVencimiento,
+            }),
+          )
+          .timeout(ApiConfig.requestTimeout);
 
-    _handleResponseCode(response.statusCode);
+      _handleResponseCode(response.statusCode);
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return Prestamo.fromJson(jsonDecode(response.body));
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return Prestamo.fromJson(jsonDecode(response.body));
+      }
+      throw Exception(_extractError(response.body, response.statusCode));
+    } on TimeoutException {
+      throw Exception('Tiempo de espera agotado (60s). $_coldStartMessage');
+    } on SocketException {
+      throw Exception('Error de conexión a internet o el servidor está iniciando. Intenta de nuevo en unos segundos.');
+    } on http.ClientException catch (e) {
+      throw Exception('Error de red: ${e.message}. $_coldStartMessage');
     }
-    throw Exception(_extractError(response.body, response.statusCode));
   }
 
   static Future<Prestamo> updatePrestamo({
@@ -93,40 +128,60 @@ class PrestamoService {
     String? fechaVencimiento,
     bool? pagado,
   }) async {
-    final token = await StorageService.getToken();
-    final Map<String, dynamic> body = {};
-    if (cliente != null) body['cliente'] = cliente;
-    if (dni != null) body['dni'] = dni;
-    if (monto != null) body['monto'] = monto;
-    if (interes != null) body['interes'] = interes;
-    if (fechaVencimiento != null) body['fechaVencimiento'] = fechaVencimiento;
-    if (pagado != null) body['pagado'] = pagado;
+    try {
+      final token = await StorageService.getToken();
+      final Map<String, dynamic> body = {};
+      if (cliente != null) body['cliente'] = cliente;
+      if (dni != null) body['dni'] = dni;
+      if (monto != null) body['monto'] = monto;
+      if (interes != null) body['interes'] = interes;
+      if (fechaVencimiento != null) body['fechaVencimiento'] = fechaVencimiento;
+      if (pagado != null) body['pagado'] = pagado;
 
-    final response = await http.put(
-      Uri.parse(ApiConfig.prestamoById(id)),
-      headers: _headers(token),
-      body: jsonEncode(body),
-    );
+      final response = await http
+          .put(
+            Uri.parse(ApiConfig.prestamoById(id)),
+            headers: _headers(token),
+            body: jsonEncode(body),
+          )
+          .timeout(ApiConfig.requestTimeout);
 
-    _handleResponseCode(response.statusCode);
+      _handleResponseCode(response.statusCode);
 
-    if (response.statusCode == 200) {
-      return Prestamo.fromJson(jsonDecode(response.body));
+      if (response.statusCode == 200) {
+        return Prestamo.fromJson(jsonDecode(response.body));
+      }
+      throw Exception(_extractError(response.body, response.statusCode));
+    } on TimeoutException {
+      throw Exception('Tiempo de espera agotado (60s). $_coldStartMessage');
+    } on SocketException {
+      throw Exception('Error de conexión a internet o el servidor está iniciando. Intenta de nuevo en unos segundos.');
+    } on http.ClientException catch (e) {
+      throw Exception('Error de red: ${e.message}. $_coldStartMessage');
     }
-    throw Exception(_extractError(response.body, response.statusCode));
   }
 
   static Future<void> deletePrestamo(int id) async {
-    final token = await StorageService.getToken();
-    final response = await http.delete(
-      Uri.parse(ApiConfig.prestamoById(id)),
-      headers: _headers(token),
-    );
+    try {
+      final token = await StorageService.getToken();
+      final response = await http
+          .delete(
+            Uri.parse(ApiConfig.prestamoById(id)),
+            headers: _headers(token),
+          )
+          .timeout(ApiConfig.requestTimeout);
 
-    _handleResponseCode(response.statusCode);
+      _handleResponseCode(response.statusCode);
 
-    if (response.statusCode != 200 && response.statusCode != 204) {
-      throw Exception(_extractError(response.body, response.statusCode));
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception(_extractError(response.body, response.statusCode));
+      }
+    } on TimeoutException {
+      throw Exception('Tiempo de espera agotado (60s). $_coldStartMessage');
+    } on SocketException {
+      throw Exception('Error de conexión a internet o el servidor está iniciando. Intenta de nuevo en unos segundos.');
+    } on http.ClientException catch (e) {
+      throw Exception('Error de red: ${e.message}. $_coldStartMessage');
     }
   }
 }

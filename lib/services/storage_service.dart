@@ -48,6 +48,11 @@ class StorageService {
   static Future<String> loadBaseUrl() async {
     final saved = await _storage.read(key: _keyBaseUrl);
     if (saved != null && saved.isNotEmpty) {
+      // Si la URL guardada previamente no incluye el subdominio exacto de producción -cohc, actualizamos a la nueva
+      if (saved.contains('prestamoservice.onrender.com') && !saved.contains('prestamoservice-cohc.onrender.com')) {
+        await saveBaseUrl(ApiConfig.defaultRenderUrl);
+        return ApiConfig.defaultRenderUrl;
+      }
       ApiConfig.setBaseUrl(saved);
       return saved;
     }
